@@ -1,23 +1,30 @@
-# MoErgo Glove80 Custom Configuration for ZMK
+# Glove80 Rev 1 — ZMK config with Realtek RTL8852AU Bluetooth fixes
 
-![MoErgo Logo](moergo_logo.png)
+This repository contains a personal ZMK firmware configuration for the MoErgo Glove80 (Revision 1), built from the official `moergo-sc/glove80-zmk-config` template.
 
-This repo is the official ZMK configuration of the MoErgo Glove80 wireless split contoured keyboard. Use it to develop your own keymap and easily build your own ZMK firmware to run on your Glove80.
+## What issue this fixes
 
-**NOTE: You can also customize the layout of your Glove80 keyboard with the Glove80 Layout Editor webapp. For most users Glove80 Layout Editor is the recommended and simpler option. More information is available at the official MoErgo Glove80 Support site (see resources below).**
+On Linux systems using a **Realtek RTL8852AU** Bluetooth adapter (USB ID `0bda:4852`, driver `btusb`, firmware `rtl8852au_fw.bin`), the Glove80 may exhibit:
 
-These steps will get you using your keymap on your keyboard in the fastest time possible. It uses the GitHub Actions feature to build your firmware online.
+- Constant Bluetooth connect/disconnect loops
+- Repeated pairing failures
+- A connection that appears to “blink” between connected and disconnected states
 
-If you are looking to dig deeper into ZMK and develop new functionality, it is recommended to follow the steps of installing ZMK as found on the official ZMK documentation site (linked below).
+This behavior is consistent with a Bluetooth compatibility/stability problem between the Glove80’s ZMK BLE stack and the Realtek adapter. It is not necessarily a hardware fault in the keyboard.
 
-## Resources
-- The [official MoErgo Glove80 Support](https://moergo.com/glove80-support) web site. Glove80 documentation and other technical resources.
-- The [official MoErgo Discord Server](https://moergo.com/discord). Instant conversations with other Glove80 users.
+Official Glove80 firmware v26.09 did not resolve the issue in this setup.
 
-- The [official ZMK Documentation](https://zmk.dev/docs) web site. Find the answers to many of your questions about ZMK Firmware.
-- The [official ZMK Discord Server](https://discord.gg/8cfMkQksSB). Instant conversations with other ZMK developers and users. Great technical resource!
+## What this config changes
 
-- The [official Glove80 ZMK Distribution](https://github.com/moergo-sc/zmk). Repositiory for ZMK firmware customized for Glove80. 
+The file `config/glove80.conf` adds Bluetooth stability workarounds:
+
+```conf
+CONFIG_ZMK_BLE_EXPERIMENTAL_CONN=y
+CONFIG_BT_GATT_ENFORCE_SUBSCRIPTION=n
+CONFIG_BT_CTLR_TX_PWR_PLUS_8=y
+CONFIG_BT_MAX_CONN=3
+CONFIG_BT_MAX_PAIRED=3
+```
  
 ## Instructions
 1. Log into, or sign up for, your personal GitHub account.
@@ -33,5 +40,31 @@ To locate your firmware files and reflash your Glove80...
 4. After clicking the desired workflow run, you should be presented with a section at the bottom of the page called "Artifacts". This section contains the results of your build, in a file called "glove80.uf2"
 5. Download the glove80.uf2
 6. Flash the firmware to Glove80 according to the user documentation on the official Glove80 Glove80 Support website (linked above)
+
+### ⚙️ Step-by-Step Flashing Instructions
+
+You will flash each half of the keyboard separately.
+
+#### Flashing the Right Half
+
+1. Power off the right half using its power switch.
+2. Connect the USB-C cable from your computer to the right half.
+3. Hold down the keys I + PgDn (on the default layout) and, while holding them, switch the power back on.
+ - A slow pulsing red LED next to the power switch confirms it's in bootloader mode.
+4. A USB Mass Storage device named GLV80RHBOOT should appear on your computer.
+5. Copy the .uf2 firmware file onto this drive. The drive will automatically disappear once the copy is complete.
+
+#### Flashing the Left Half
+
+1. Disconnect the USB cable from the right half and connect it to the left half.
+2. Power off the left half.
+3. Hold down the keys Magic + E (on the default layout) and, while holding them, switch the power back on.
+ - The same slow pulsing red LED confirms bootloader mode.
+4. A USB Mass Storage device named GLV80LHBOOT should appear.
+5. Copy the same .uf2 file onto this drive. It will also disappear when done.
+
+### ⚠️ Important: After Flashing
+
+After changing firmware versions, MoErgo generally recommends performing a "Configuration Factory Reset and re-pairing the left and right halves" procedure. This ensures the new firmware takes full effect. You can find instructions for this in the troubleshooting section of the MoErgo documentation.
 
 Your keyboard is now ready to use.
